@@ -2,7 +2,7 @@
 
 This repository contains a script that is a wrapper around AutoPkg to automate the process of creating, updating, promoting and deleting macOS apps in Intune using the Intune Uploader processor.
 
-For help getting started with Intune Uploader, see this wiki.
+For help getting started with Intune Uploader, see [this wiki](https://github.com/almenscorner/intune-uploader/wiki).
 
 ## How it works
 This repository contains example overrides for Firefox and UTM, but you can easily add more by creating a new override file in the `overrides` directory.
