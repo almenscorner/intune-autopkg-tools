@@ -1,0 +1,82 @@
+# Description: This file contains the Azure DevOps pipeline configuration for running AutoPkg.
+# To use this pipeline, you will need to create a new pipeline in Azure DevOps,
+# and copy the contents of this file into the pipeline configuration.
+# 
+# Then configure the following secret variables in the pipeline:
+# - CLIENT_SECRET: The client secret for the Azure AD application.
+# - TEAMS_WEBHOOK: The webhook URL for the Microsoft Teams channel.
+# Additionally, configure the following variables in the pipeline:
+# - CLIENT_ID: The client ID for the Azure AD application.
+# - TENANT_ID: The tenant ID for the Azure AD application.
+
+name: AutoPkg
+
+schedules:
+   # Run the pipeline every day at 6:00 AM.
+  - cron: '0 6 * * *'
+   # Run on the main branch.
+    branches:
+      include:
+      - main
+    always: true
+
+jobs:
+- job: run_autopkg
+  timeoutInMinutes: 120
+  displayName: Run AutoPkg
+  pool:
+    vmImage: 'macOS-latest'
+  variables:
+    TENANT_ID: ""
+    CLIENT_ID: ""
+    AUTOPKG_SHA256: "2ff34daf02256ad81e2c74c83a9f4c312fa2f9dd212aba59e0cef0e6ba1be5c9"
+    AUTOPKG_URL: "https://github.com/autopkg/autopkg/releases/download/v2.7.2/autopkg-2.7.2.pkg"
+    OVERRIDES_DIR: "$(System.DefaultWorkingDirectory)/overrides"
+    AUTOPKG_TOOLS_DIR: "$(System.DefaultWorkingDirectory)/autopkg_tools"
+  steps:
+  - checkout: self
+
+  - script: |
+      python3 -m pip install --upgrade pip
+      pip3 install -r $(System.DefaultWorkingDirectory)/requirements.txt
+    displayName: 'Install Python dependencies'
+
+  - script: |
+      curl -L $(AUTOPKG_URL) --output /tmp/autopkg.pkg
+      echo "$(AUTOPKG_SHA256) */tmp/autopkg.pkg" | shasum -c
+      if [[ $? != "0" ]]; then exit 1; fi
+      sudo installer -pkg /tmp/autopkg.pkg -target /
+      /usr/local/autopkg/python -m pip install --upgrade requests cryptography
+    displayName: 'Install AutoPkg'
+
+  - script: |
+      defaults write com.github.autopkg FAIL_RECIPES_WITHOUT_TRUST_INFO -bool YES
+      defaults write com.github.autopkg RECIPE_OVERRIDE_DIRS $(OVERRIDES_DIR)
+      defaults write com.github.autopkg CLIENT_ID $(CLIENT_ID)
+      defaults write com.github.autopkg CLIENT_SECRET $(CLIENT_SECRET)
+      defaults write com.github.autopkg TENANT_ID $(TENANT_ID)
+      git config --global user.name "runner"
+      git config --global user.email "runner@azuredevops.local"
+    displayName: 'Configure AutoPkg and Git'
+
+  - script: for repo in $(cat $(AUTOPKG_TOOLS_DIR)/repo_list.txt); do autopkg repo-add "$repo" && autopkg repo-update "$repo"; done
+    displayName: Add recipe repos
+
+  - script: |
+      python3 $(AUTOPKG_TOOLS_DIR)/autopkg_tools.py \
+      --list $(AUTOPKG_TOOLS_DIR)/recipe_list.json \
+      --cleanup $(AUTOPKG_TOOLS_DIR)/cleanup_list.json \
+      --promote $(AUTOPKG_TOOLS_DIR)/promote_list.json
+    displayName: 'Run AutoPkg'
+    env:
+      TEAMS_WEBHOOK: $(TEAMS_WEBHOOK)
+
+  - script: |
+      /usr/bin/tar -czvf /tmp/autopkg.tar.gz /tmp/autopkg_tools.log
+    displayName: 'Get log'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Upload log'
+    inputs:
+      PathtoPublish: '/tmp/autopkg.tar.gz'
+      ArtifactName: 'autopkg_log'

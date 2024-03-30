@@ -1,0 +1,3 @@
+https://github.com/autopkg/almenscorner-recipes
+https://github.com/autopkg/recipes
+https://github.com/autopkg/ahousseini-recipes

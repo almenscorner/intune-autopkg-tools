@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Identifier</key>
+	<string>local.intune.UTM</string>
+	<key>Input</key>
+	<dict>
+		<key>NAME</key>
+		<string>UTM</string>
+		<key>categories</key>
+		<array>
+			<string>Productivity</string>
+		</array>
+		<key>description</key>
+		<string>Virtual machines for iOS and macOS</string>
+		<key>developer</key>
+		<string>UTM</string>
+		<key>display_name</key>
+		<string>UTM</string>
+	</dict>
+	<key>ParentRecipe</key>
+	<string>com.github.almenscorner.intune.UTM</string>
+	<key>ParentRecipeTrustInfo</key>
+	<dict>
+		<key>non_core_processors</key>
+		<dict>
+			<key>com.github.almenscorner.intune-upload.processors/IntuneAppIconGetter</key>
+			<dict>
+				<key>git_hash</key>
+				<string>d4b10043288978db1f1168ac3b6c841076c4558b</string>
+				<key>path</key>
+				<string>~/Library/AutoPkg/RecipeRepos/com.github.autopkg.almenscorner-recipes/IntuneUploader/IntuneAppIconGetter.py</string>
+				<key>sha256_hash</key>
+				<string>e3060bf0e15bd9ad9c5877805c0dcbb7b3732e1891b654ece10c4f35987c7216</string>
+			</dict>
+			<key>com.github.almenscorner.intune-upload.processors/IntuneAppUploader</key>
+			<dict>
+				<key>git_hash</key>
+				<string>b8f284e6c75df3a3b1084900b6144afc9572136a</string>
+				<key>path</key>
+				<string>~/Library/AutoPkg/RecipeRepos/com.github.autopkg.almenscorner-recipes/IntuneUploader/IntuneAppUploader.py</string>
+				<key>sha256_hash</key>
+				<string>a3c6f2b00735af1c475b1faca1fab9091020956ae4219e640907645740b80263</string>
+			</dict>
+		</dict>
+		<key>parent_recipes</key>
+		<dict>
+			<key>com.github.ahousseini-recipes.download.UTM</key>
+			<dict>
+				<key>git_hash</key>
+				<string>886011b1f8e59d71775de1a4653d2d6ea41d51eb</string>
+				<key>path</key>
+				<string>~/Library/AutoPkg/RecipeRepos/com.github.autopkg.ahousseini-recipes/UTM/UTM.download.recipe</string>
+				<key>sha256_hash</key>
+				<string>2dc5bd668da72c1bd8777023c1541ce57cd850dac73e38100455a7e3af167578</string>
+			</dict>
+			<key>com.github.almenscorner.intune.UTM</key>
+			<dict>
+				<key>git_hash</key>
+				<string>bb54f0e9ec08a805b04d7a0bacb71abbdccc2505</string>
+				<key>path</key>
+				<string>~/Library/AutoPkg/RecipeRepos/com.github.autopkg.almenscorner-recipes/UTM/UTM.intune.recipe</string>
+				<key>sha256_hash</key>
+				<string>606241a19ba56c77b4f9c2de494181cb39fc845cc3a6b3e6a377d5cc1298cf71</string>
+			</dict>
+		</dict>
+	</dict>
+</dict>
+</plist>

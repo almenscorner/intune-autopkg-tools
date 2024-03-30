@@ -1,0 +1,80 @@
+# Description: This file contains the Github Action configuration for running AutoPkg.
+# 
+# Configure the following repository secrets in the Github repository settings:
+# - CLIENT_SECRET: The client secret for the Azure AD application.
+# - TEAMS_WEBHOOK: The webhook URL for the Microsoft Teams channel.
+# Additionally, configure the following variables in this Github Action configuration file:
+# - CLIENT_ID: The client ID for the Azure AD application.
+# - TENANT_ID: The tenant ID for the Azure AD application.
+
+name: AutoPkg
+
+on:
+    # Run the workflow when the workflow_dispatch event is triggered
+    workflow_dispatch:
+    # Run the workflow every day at 6:00 AM
+    schedule:
+        - cron: "0 6 * * *"
+
+jobs:
+    autopkg:
+        timeout-minutes: 120
+        runs-on: macos-latest
+        env:
+            TENANT_ID: ""
+            CLIENT_ID: ""
+            AUTOPKG_SHA256: "2ff34daf02256ad81e2c74c83a9f4c312fa2f9dd212aba59e0cef0e6ba1be5c9"
+            AUTOPKG_URL: "https://github.com/autopkg/autopkg/releases/download/v2.7.2/autopkg-2.7.2.pkg"
+            OVERRIDES_DIR: "${{ github.workspace }}/overrides"
+            AUTOPKG_TOOLS_DIR: "${{ github.workspace }}/autopkg_tools"
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+          with:
+            fetch-depth: 1
+
+        - name: Install Python dependencies
+          run: |
+            python3 -m pip install --upgrade pip
+            pip3 install -r requirements.txt
+    
+        - name: Install AutoPkg
+          run: |
+            curl -L ${{ env.AUTOPKG_URL }} --output /tmp/autopkg.pkg
+            echo "${{ env.AUTOPKG_SHA256 }} */tmp/autopkg.pkg" | shasum -c
+            if [[ $? != "0" ]]; then exit 1; fi
+            sudo installer -pkg /tmp/autopkg.pkg -target /
+            /usr/local/autopkg/python -m pip install --upgrade requests cryptography
+
+        - name: Configure AutoPkg and Git
+          run: |
+            defaults write com.github.autopkg FAIL_RECIPES_WITHOUT_TRUST_INFO -bool YES
+            defaults write com.github.autopkg RECIPE_OVERRIDE_DIRS ${{ env.OVERRIDES_DIR }}
+            defaults write com.github.autopkg CLIENT_ID ${{ env.CLIENT_ID }}
+            defaults write com.github.autopkg CLIENT_SECRET ${{ secrets.CLIENT_SECRET }}
+            defaults write com.github.autopkg TENANT_ID ${{ env.TENANT_ID }}
+            git config --global user.name "runner"
+            git config --global user.email "runner@githubactions.local"
+
+        - name: Add AutoPkg repos
+          run: |
+            for repo in $(cat ${{ env.AUTOPKG_TOOLS_DIR }}/repo_list.txt); do autopkg repo-add "$repo"; done
+    
+        - name: Run AutoPkg
+          run: |
+            python3 ${{ env.AUTOPKG_TOOLS_DIR }}/autopkg_tools.py \
+            --list ${{ env.AUTOPKG_TOOLS_DIR }}/recipe_list.json \
+            --cleanup ${{ env.AUTOPKG_TOOLS_DIR }}/cleanup_list.json \
+            --promote ${{ env.AUTOPKG_TOOLS_DIR }}/promote_list.json \
+          env:
+            TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK }}
+
+        - name: Get log
+          run: |
+            /usr/bin/tar -czvf /tmp/autopkg.tar.gz /tmp/autopkg_tools.log
+      
+        - name: Upload log
+          uses: actions/upload-artifact@v3
+          with:
+            name: autopkg_log
+            path: /tmp/autopkg.tar.gz
