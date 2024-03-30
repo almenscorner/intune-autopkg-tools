@@ -310,11 +310,6 @@ def main():
         help="List of apps to run cleanup for, separated by commas",
     )
     parser.add_argument(
-        "--keep-count",
-        type=int,
-        help="Number of versions to keep in Intune. Used with --cleanup if you wish to change the default of 3.",
-    )
-    parser.add_argument(
         "--promote-list",
         help="List of apps to run promotion for, separated by commas",
     )
