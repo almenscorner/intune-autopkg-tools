@@ -15,14 +15,14 @@ The script `autopkg_tools/autopkg_tools.py` will run AutoPkg with specified reci
 - `autopkg_tools/promote_list.json` - List of recipes to promote to groups in stages, see [here](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppPromoter) for more information on how to configure this.
 - `autopkg_tools/cleanup_list.json` - List of recipes to delete old versions in Intune, when adding a new version, configure the `keep` value to the number of versions to keep. If not configured, the default is 3.
 
-This is run using the workflow `.guthub/workflows/autopkg.yml` if using GitHub Actions or `autopkg-azure.yml` if using Azure Pipelines.
+This is run using the workflow `.github/workflows/autopkg.yml` if using GitHub Actions or `autopkg-azure.yml` if using Azure Pipelines.
 
 ## GitHub Actions
 To use this with GitHub Actions, create a new repository, clone this repository and copy the contents to your repository and add the following secrets to your repository:
 - `CLIENT_SECRET` - The client secret of your Intune app registration
 - `TEAMS_WEBHOOK` - The webhook URL of the Teams channel you want to post to
 
-Then update the following variables in `.guthub/workflows/autopkg.yml`:
+Then update the following variables in `.github/workflows/autopkg.yml`:
 - `TENANT_ID` - The tenant ID of your Azure AD
 - `CLIENT_ID` - The client ID of your Intune app registration
 
