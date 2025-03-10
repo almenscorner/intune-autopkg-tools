@@ -35,8 +35,8 @@ jobs:
 
         - name: Install Python dependencies
           run: |
-            python3 -m pip install --upgrade pip
-            pip3 install -r requirements.txt
+            python3 -m pip install --break-system-packages --upgrade pip
+            pip3 install --break-system-packages -r requirements.txt
     
         - name: Install AutoPkg
           run: |
@@ -74,7 +74,7 @@ jobs:
             /usr/bin/tar -czvf /tmp/autopkg.tar.gz /tmp/autopkg_tools.log
       
         - name: Upload log
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
             name: autopkg_log
             path: /tmp/autopkg.tar.gz
