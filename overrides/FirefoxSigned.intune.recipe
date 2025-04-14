@@ -86,11 +86,11 @@
 			<key>com.github.almenscorner.intune-upload.processors/IntuneAppUploader</key>
 			<dict>
 				<key>git_hash</key>
-				<string>b8f284e6c75df3a3b1084900b6144afc9572136a</string>
+				<string>16da9e992cd0b75555336c0677fb79a69f006ff1</string>
 				<key>path</key>
 				<string>~/Library/AutoPkg/RecipeRepos/com.github.autopkg.almenscorner-recipes/IntuneUploader/IntuneAppUploader.py</string>
 				<key>sha256_hash</key>
-				<string>a3c6f2b00735af1c475b1faca1fab9091020956ae4219e640907645740b80263</string>
+				<string>2074cdda732a40f263287cda86c9381af5b4f015a2f4d78abe55ee4200d12d69</string>
 			</dict>
 		</dict>
 		<key>parent_recipes</key>
