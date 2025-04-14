@@ -23,13 +23,13 @@ import subprocess
 
 from pathlib import Path
 from argparse import ArgumentParser
-from teams_alert import notify_teams
 from logger import logger
 
 DEBUG = os.environ.get("DEBUG", False)
 OVERRIDES_DIR = os.environ.get("OVERRIDES_DIR")
 RECIPE_TO_RUN = os.environ.get("RECIPE", None)
 TEAMS_WEBHOOK = os.environ.get("TEAMS_WEBHOOK")
+SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK")
 logger = logger("/tmp/autopkg_tools.log")
 
 
@@ -150,7 +150,10 @@ class Recipe(object):
         return data
 
     def run(self, opts):
-        verbosity_level = "-vvv" if DEBUG else "-v"
+        if DEBUG:
+            verbosity_level = "-vvv"
+        else:
+            verbosity_level = "-v"
         if self.verified == False:
             self.error = True
             self.results["failed"] = True
@@ -169,6 +172,26 @@ class Recipe(object):
                     "--report-plist",
                     report,
                 ]
+
+                if not DEBUG and TEAMS_WEBHOOK is not None:
+                    cmd.extend(
+                        [
+                            "--post",
+                            "com.github.almenscorner.intune-upload.processors/IntuneTeamsNotifier",
+                            "-k",
+                            f"webhook_url={TEAMS_WEBHOOK}"
+                        ]
+                    )
+
+                if not DEBUG and SLACK_WEBHOOK is not None:
+                    cmd.extend(
+                        [
+                            "--post",
+                            "com.github.almenscorner.intune-upload.processors/IntuneSlackNotifier",
+                            "-k",
+                            f"webhook_url={TEAMS_WEBHOOK}"
+                        ]
+                    )
 
                 if opts.cleanup_list:
                     cleanup_list = self._parse_list(opts.cleanup_list)
@@ -310,6 +333,11 @@ def main():
         help="List of apps to run cleanup for, separated by commas",
     )
     parser.add_argument(
+        "--keep-count",
+        type=int,
+        help="Number of versions to keep in Intune. Used with --cleanup if you wish to change the default of 3.",
+    )
+    parser.add_argument(
         "--promote-list",
         help="List of apps to run promotion for, separated by commas",
     )
@@ -332,12 +360,6 @@ def main():
     recipes = parse_recipes(recipes)
     for recipe in recipes:
         handle_recipe(recipe, opts)
-        if DEBUG:
-            logger.debug("Skipping Teams notification - debug is enabled!")
-        if TEAMS_WEBHOOK is None:
-            logger.log("Skipping Teams notification - webhook url is missing!")
-        if not DEBUG and TEAMS_WEBHOOK is not None:
-            notify_teams(recipe, opts)
         if not opts.disable_verification:
             if not recipe.verified:
                 failures.append(recipe)
